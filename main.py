@@ -33,5 +33,9 @@ if __name__ == '__main__':
     if args.method == 'nn':
         from nn.main import *
         main(args)
+    elif args.method == 'sknn':
+        pass
+        # from sknn.main import *
+        # main(args)
     else:
         raise NotImplementedError('Method %s not implemented yet !' % args.method)

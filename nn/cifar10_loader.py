@@ -3,15 +3,15 @@ import os
 
 import torch
 from torch.utils.data.dataset import Dataset
-from torchvision import transforms
 
 
 class Cifar10(Dataset):
-    def __init__(self, data_dir, mode):
+    def __init__(self, data_dir, mode, evaluate=False):
         self.feat = []
         self.lbl = []
         self.data_dir = data_dir
         self.mode = mode
+        self.evaluate = evaluate
 
         self._read_raw()
 
@@ -21,7 +21,7 @@ class Cifar10(Dataset):
 
         print('Loaded dataset from %s with size %d' % (self.data_file, self.feat.shape[0]))
 
-    # read train / test data
+    # read training / testing data
     def _read_raw(self):
         self.data_file = os.path.join(self.data_dir, '%s.csv' % self.mode)
         with open(self.data_file, 'r') as f:
@@ -29,8 +29,13 @@ class Cifar10(Dataset):
 
         for line in lines:
             items = line.rstrip().split(',')
-            feat = items[1:-1]
-            lbl = items[-1]
+
+            if not self.evaluate:   # for training and testing
+                feat = items[1:-1]
+                lbl = items[-1]
+            else:                   # for evaluation
+                feat = items[1:]
+                lbl = 0
 
             self.feat.append(feat)
             self.lbl.append(lbl)

@@ -3,4 +3,6 @@ The project of statistical learning (X033524).
 
 ## Upload History
 
-* simple nn - 
+| Model | Accuracy |
+| :---- |:--------:|
+| simple nn + bn | - 0.98675 |

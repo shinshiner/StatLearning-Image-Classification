@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from nn.cifar10_loader import Cifar10
-from nn.model import CifarClassifer
+from nn.model import *
 
 
 def train(args):
@@ -37,8 +37,8 @@ def train(args):
                             pin_memory=True, num_workers=configs['workers'], shuffle=True)
 
     # initialize model & optimizer & loss
-    model = CifarClassifer(num_classes=configs['num_classes'])
-    optimizer = optim.Adam(model.parameters(), lr=configs['lr'])
+    model = CNNCifarClassifer(num_classes=configs['num_classes'])
+    optimizer = optim.Adam(model.parameters(), lr=configs['lr'], weight_decay=configs['weight_decay'])
     criterion = nn.CrossEntropyLoss()
     if configs['gpu']:
         model = model.cuda()
@@ -90,19 +90,20 @@ def train(args):
             correct += pred[0][0] == lbl.numpy()[0]
 
         accuracy = correct / len(data_loader_t)
-        log_info = '[Epoch: %d], [test accuracy: %0.4f]' % (i, accuracy)
+        log_info = '[Epoch: %d], [test accuracy: %0.8f]' % (i, accuracy)
         print(log_info)
         log_t.write(log_info + '\n')
         log_t.flush()
 
         # save the model
-        print('saving model')
-        if not os.path.isdir(os.path.join(args.model_dir, args.method)):
-            os.makedirs(os.path.join(args.model_dir, args.method))
-        torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'epoch_%d.pth' % i))
+        if i % configs['save_interval'] == 0:
+            print('saving model')
+            if not os.path.isdir(os.path.join(args.model_dir, args.method)):
+                os.makedirs(os.path.join(args.model_dir, args.method))
+            torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'epoch_%d.pth' % i))
 
         if accuracy > max_accuracy:
-            torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'best.pth'))
+            torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'best_%0.2f.pth' % accuracy))
             max_accuracy = accuracy
 
     log_tr.close()
@@ -119,16 +120,18 @@ def evaluate(args, model_path):
         for k, v in configs.items():
             configs[k] = eval(v)
     configs['gpu'] = configs['gpu'] and torch.cuda.is_available()
-    print(configs)
 
     # initialize data loader
-    dataset = Cifar10(args.eval_dir, 'test')
+    dataset = Cifar10(args.eval_dir, 'test', evaluate=True)
     data_loader = DataLoader(dataset, batch_size=1, pin_memory=True, num_workers=configs['workers'],shuffle=False)
 
     # initialize model & optimizer & loss
     model = CifarClassifer(num_classes=configs['num_classes'])
     model.load_state_dict(torch.load(model_path))
     model = model.eval()
+    if configs['gpu']:
+        model = model.cuda()
+    print('======= Loaded model from %s =======' % model_path)
 
     for batch_i, (feat, lbl) in enumerate(data_loader):
         if configs['gpu']:
@@ -141,7 +144,7 @@ def evaluate(args, model_path):
         else:
             pred = prob.max(1, keepdim=True)[1].numpy()
 
-        result.write('%s,%s\n' % (str(batch_i), str(pred)))
+        result.write('%s,%s\n' % (str(batch_i), str(pred[0][0])))
 
     result.close()
 
