@@ -10,10 +10,14 @@ def init_parser():
                         help='random seed')
     parser.add_argument('--data-dir', type=str, default='splited_data',
                         help='path to data files')
+    parser.add_argument('--eval-dir', type=str, default='origin_data',
+                        help='path to eval data files')
     parser.add_argument('--config-dir', type=str, default='configs',
                         help='path to configuration files')
     parser.add_argument('--model-dir', type=str, default='trained_models',
                         help='path to trained models')
+    parser.add_argument('--log-dir', type=str, default='logs',
+                        help='path to logs')
     parser.add_argument('--mode', type=str, default='train',
                         help='train / test')
 
@@ -30,4 +34,4 @@ if __name__ == '__main__':
         from nn.main import *
         main(args)
     else:
-        print('Not implemented !')
+        raise NotImplementedError('Method %s not implemented yet !' % args.method)
