@@ -4,10 +4,11 @@
   "workers": "8",
   "loss_interval": "100",
   "save_interval": "50",
+  "n_folds": "10",
 
-  "lr": "0.00001",
-  "batch_size": "16",
-  "weight_decay": "0.0001",
+  "lr": "0.0001",
+  "batch_size": "8",
+  "weight_decay": "0.001",
 
   "num_classes": "12"
 }

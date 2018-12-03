@@ -1,6 +1,8 @@
 import os
 import argparse
 
+from utils import config_parser
+
 
 def init_parser():
     parser = argparse.ArgumentParser(description='Cifar-10 Classification')
@@ -30,12 +32,19 @@ if __name__ == '__main__':
         from utils import split_train_test
         split_train_test('origin_data/train.csv', 'splited_data', args.seed)
 
+    configs = config_parser(os.path.join(args.config_dir, '%s.json' % args.method))
     if args.method == 'nn':
         from nn.main import *
-        main(args)
+        main(args, configs)
     elif args.method == 'sknn':
-        pass
-        # from sknn.main import *
-        # main(args)
+        from utils import sk_read
+        feats, lbls = sk_read('origin_data/train.csv')
+        from sknn.main import *
+        main(args, feats, lbls, configs)
+    elif args.method == 'svm':
+        from utils import sk_read
+        feats, lbls = sk_read('origin_data/train.csv')
+        from svm.main import *
+        main(args, feats, lbls, configs)
     else:
         raise NotImplementedError('Method %s not implemented yet !' % args.method)

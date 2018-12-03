@@ -7,17 +7,17 @@ class CifarClassifer(nn.Module):
     def __init__(self, num_classes):
         super(CifarClassifer, self).__init__()
 
-        # self.fc_block = nn.Sequential(OrderedDict([
-        #     ('fc1', nn.Linear(4096, 1024)),
-        #     ('relu1', nn.ReLU()),
-        #     ('fc2', nn.Linear(1024, 512)),
-        #     ('relu2', nn.ReLU()),
-        #     ('fc3', nn.Linear(512, 256)),
-        #     ('relu3', nn.ReLU()),
-        #     ('fc4', nn.Linear(256, 64)),
-        #     ('relu4', nn.ReLU()),
-        #     ('fc5', nn.Linear(64, num_classes))
-        # ]))
+        self.fc_block = nn.Sequential(OrderedDict([
+            ('fc1', nn.Linear(4096, 1024)),
+            ('relu1', nn.ReLU()),
+            ('fc2', nn.Linear(1024, 512)),
+            ('relu2', nn.ReLU()),
+            ('fc3', nn.Linear(512, 256)),
+            ('relu3', nn.ReLU()),
+            ('fc4', nn.Linear(256, 64)),
+            ('relu4', nn.ReLU()),
+            ('fc5', nn.Linear(64, num_classes))
+        ]))
 
         # self.fc_bn_block = nn.Sequential(OrderedDict([
         #     ('fc1', nn.Linear(4096, 1024)),
@@ -35,28 +35,28 @@ class CifarClassifer(nn.Module):
         #     ('fc5', nn.Linear(64, num_classes))
         # ]))
 
-        self.fc_bn_drop_block = nn.Sequential(OrderedDict([
-            ('fc1', nn.Linear(4096, 1024)),
-            ('bn1', nn.BatchNorm1d(1024)),
-            ('d1', nn.Dropout(0.5)),
-            ('relu1', nn.ReLU()),
-            ('fc2', nn.Linear(1024, 512)),
-            ('bn2', nn.BatchNorm1d(512)),
-            ('d2', nn.Dropout(0.5)),
-            ('relu2', nn.ReLU()),
-            ('fc3', nn.Linear(512, 256)),
-            ('bn3', nn.BatchNorm1d(256)),
-            ('d3', nn.Dropout(0.5)),
-            ('relu3', nn.ReLU()),
-            ('fc4', nn.Linear(256, 64)),
-            ('bn4', nn.BatchNorm1d(64)),
-            ('d4', nn.Dropout(0.5)),
-            ('relu4', nn.ReLU()),
-            ('fc5', nn.Linear(64, num_classes))
-        ]))
+        # self.fc_bn_drop_block = nn.Sequential(OrderedDict([
+        #     ('fc1', nn.Linear(4096, 1024)),
+        #     ('bn1', nn.BatchNorm1d(1024)),
+        #     ('d1', nn.Dropout(0.5)),
+        #     ('relu1', nn.ReLU()),
+        #     ('fc2', nn.Linear(1024, 512)),
+        #     ('bn2', nn.BatchNorm1d(512)),
+        #     ('d2', nn.Dropout(0.5)),
+        #     ('relu2', nn.ReLU()),
+        #     ('fc3', nn.Linear(512, 256)),
+        #     ('bn3', nn.BatchNorm1d(256)),
+        #     ('d3', nn.Dropout(0.5)),
+        #     ('relu3', nn.ReLU()),
+        #     ('fc4', nn.Linear(256, 64)),
+        #     ('bn4', nn.BatchNorm1d(64)),
+        #     ('d4', nn.Dropout(0.5)),
+        #     ('relu4', nn.ReLU()),
+        #     ('fc5', nn.Linear(64, num_classes))
+        # ]))
 
     def forward(self, x):
-        return self.fc_bn_drop_block(x)
+        return self.fc_block(x)
 
 
 class CNNCifarClassifer(nn.Module):
@@ -80,13 +80,13 @@ class CNNCifarClassifer(nn.Module):
 
         self.fc_block = nn.Sequential(OrderedDict([
             ('fc1', nn.Linear(32 * 14 * 14, 2048)),
-            ('d1', nn.Dropout(0.2)),
+            ('d1', nn.Dropout(0.5)),
             ('relu4', nn.ReLU()),
             ('fc2', nn.Linear(2048, 512)),
-            ('d2', nn.Dropout(0.2)),
+            ('d2', nn.Dropout(0.5)),
             ('relu5', nn.ReLU()),
             ('fc3', nn.Linear(512, 64)),
-            ('d3', nn.Dropout(0.2)),
+            ('d3', nn.Dropout(0.5)),
             ('relu6', nn.ReLU()),
             ('fc5', nn.Linear(64, num_classes))
         ]))
