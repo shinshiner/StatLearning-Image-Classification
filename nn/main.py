@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 
 import torch
 from torch.utils.data import DataLoader
@@ -7,8 +8,13 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 
+from sklearn.model_selection import StratifiedKFold
+from sklearn.utils import shuffle
+
 from nn.cifar10_loader import Cifar10
 from nn.model import *
+from utils import sk_read, sk_read_eval
+
 
 
 def train(args, configs):
@@ -106,9 +112,8 @@ def evaluate(args, model_path, configs):
     result = open(os.path.join(args.method, 'results.csv'), 'w')
     result.write('id,categories\n')
 
-    # initialize data loader
-    dataset = Cifar10(args.eval_dir, 'test', evaluate=True)
-    data_loader = DataLoader(dataset, batch_size=1, pin_memory=True, num_workers=configs['workers'],shuffle=False)
+    # initialize data
+    feats = sk_read_eval('origin_data/test.csv', normal=False)
 
     # initialize model & optimizer & loss
     model = CifarClassifer(num_classes=configs['num_classes'])
@@ -118,7 +123,9 @@ def evaluate(args, model_path, configs):
         model = model.cuda()
     print('======= Loaded model from %s =======' % model_path)
 
-    for batch_i, (feat, lbl) in enumerate(data_loader):
+    for batch_i, feat in enumerate(feats):
+        feat = torch.from_numpy(feat).unsqueeze(0)
+
         if configs['gpu']:
             feat = feat.cuda()
 
@@ -135,11 +142,7 @@ def evaluate(args, model_path, configs):
 
 
 def train_cv(args, configs):
-    from utils import sk_read
-    from sklearn.model_selection import StratifiedKFold
-    import numpy as np
-
-    feats, lbls = sk_read('origin_data/train.csv')
+    feats, lbls = sk_read('origin_data/train.csv', normal=False)
 
     # initialize logger
     if not os.path.isdir(os.path.join(args.log_dir, args.method)):
@@ -157,20 +160,24 @@ def train_cv(args, configs):
 
     max_accuracy = 0
 
-    for i in range(configs['epoch']):
-        cv_i = 0
-
-        # using k-folds cv
-        kfolds = StratifiedKFold(n_splits=configs['n_folds'], random_state=args.seed+i, shuffle=True)
-        for tr, t in kfolds.split(feats, lbls):
-            cv_i += 1
+    # using k-folds cv
+    kfolds = StratifiedKFold(n_splits=configs['n_folds'], random_state=args.seed, shuffle=True)
+    cv_i = 0
+    for tr, t in kfolds.split(feats, lbls):
+        cv_i += 1
+        feat_tr, feat_t, lbl_tr, lbl_t = feats[tr], feats[t], lbls[tr], lbls[t]
+        for i in range(configs['epoch']):
             print('======= training fold %d of epoch %d ========' % (cv_i, i))
+
+            # shuffle training data
+            feat_shuffle, lbl_shuffle = shuffle(feat_tr, lbl_tr, random_state=args.seed + i)
 
             # training phase
             loss_sum = 0
-            for batch_i, (feat, lbl) in enumerate(list(zip(feats[tr], lbls[tr]))):
-                feat = torch.from_numpy(feat).unsqueeze(0)
-                lbl = torch.from_numpy(np.array(lbl)).unsqueeze(0).long()
+            model = model.train()
+            for batch_i in range(0, feat_shuffle.shape[0], configs['batch_size']):
+                feat = torch.from_numpy(feat_shuffle[batch_i: min(feat_shuffle.shape[0], batch_i + configs['batch_size'])])
+                lbl = torch.from_numpy(lbl_shuffle[batch_i: min(lbl_shuffle.shape[0], batch_i + configs['batch_size'])]).long()
 
                 if configs['gpu']:
                     feat = feat.cuda()
@@ -200,7 +207,8 @@ def train_cv(args, configs):
 
             # testing phase
             correct = 0
-            for feat, lbl in zip(feats[t], lbls[t]):
+            model = model.eval()
+            for feat, lbl in zip(feat_t, lbl_t):
                 feat = torch.from_numpy(feat).unsqueeze(0)
 
                 if configs['gpu']:
@@ -225,17 +233,19 @@ def train_cv(args, configs):
                 print('======= saving model ========')
                 if not os.path.isdir(os.path.join(args.model_dir, args.method)):
                     os.makedirs(os.path.join(args.model_dir, args.method))
-                torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'epoch_%d.pth' % i))
+                torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'epoch_%d_%d.pth' % (cv_i, i)))
 
             if accuracy > max_accuracy:
                 torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'best_%0.4f.pth' % accuracy))
                 max_accuracy = accuracy
+
+    torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'final.pth'))
 
 
 def main(args, configs):
     if args.mode == 'train':
         train_cv(args, configs)
     elif args.mode == 'test':
-        evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'best.pth'), configs=configs)
+        evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'final.pth'), configs=configs)
     else:
         raise NotImplemented

@@ -35,11 +35,10 @@ def split_train_test(source_file, target_dir, seed):
 
 
 # read data for sklearn format (numpy-array)
-def sk_read(data_path):
-    if os.path.exists('origin_data/feats.npy') and \
-        os.path.exists('origin_data/lbls.npy'):
-        feats = np.load('origin_data/feats.npy').astype(np.float32)
-        lbls = np.load('origin_data/lbls.npy').astype(np.uint8)
+def sk_read(data_path, normal=True):
+    if os.path.exists('origin_data/feats_%d.npy' % normal) and os.path.exists('origin_data/lbls_%d.npy' % normal):
+        feats = np.load('origin_data/feats_%d.npy' % normal).astype(np.float32)
+        lbls = np.load('origin_data/lbls_%d.npy' % normal).astype(np.uint8)
         print('======= numpy-array format data ready ! =======')
 
         return feats, lbls
@@ -62,16 +61,50 @@ def sk_read(data_path):
     feats = np.array(feats).astype(np.float32)
     lbls = np.array(lbls).astype(np.uint8)
 
-    scaler = StandardScaler()
-    scaler.fit(feats)
-    scaler.transform(feats)
+    if normal:
+        scaler = StandardScaler()
+        scaler.fit(feats)
+        scaler.transform(feats)
 
-    np.save('origin_data/feats.npy', feats)
-    np.save('origin_data/lbls.npy', lbls)
+    np.save('origin_data/feats_%d.npy' % normal, feats)
+    np.save('origin_data/lbls_%d.npy' % normal, lbls)
 
     print('======= numpy-array format data ready ! =======')
 
     return feats, lbls
+
+
+# read data for sklearn format (numpy-array)
+def sk_read_eval(data_path, normal=True):
+    if os.path.exists('origin_data/feats_eval_%d.npy' % normal):
+        feats = np.load('origin_data/feats_eval_%d.npy' % normal).astype(np.float32)
+        print('======= numpy-array format data ready ! =======')
+
+        return feats
+
+    feats = []
+
+    with open(data_path, 'r') as f:
+        lines = f.readlines()[1:]
+
+    for line in lines:
+        items = line.rstrip().split(',')
+        feat = items[1:]
+
+        feats.append(feat)
+
+    feats = np.array(feats).astype(np.float32)
+
+    if normal:
+        scaler = StandardScaler()
+        scaler.fit(feats)
+        scaler.transform(feats)
+
+    np.save('origin_data/feats_eval_%d.npy' % normal, feats)
+
+    print('======= numpy-array format data ready ! =======')
+
+    return feats
 
 
 # read configurations from .json files
@@ -105,4 +138,4 @@ def compare(f1, f2):
 
 
 if __name__ == '__main__':
-    compare('results.csv', 'nn/results-98675.csv')
+    compare('nn/results.csv', 'results_92222.csv')
