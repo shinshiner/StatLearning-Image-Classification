@@ -116,7 +116,7 @@ def evaluate(args, model_path, configs):
     # initialize data
     feats = sk_read_eval('origin_data/test.csv', normal=False)
 
-    # initialize model & optimizer & loss
+    # initialize model
     model = PointNetfeat(num_classes=configs['num_classes'])
     model.load_state_dict(torch.load(model_path))
     model = model.eval()
@@ -243,10 +243,68 @@ def train_cv(args, configs):
     torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'final.pth'))
 
 
+def bagging(args, model_path_list, configs):
+    result = open(os.path.join(args.method, 'results.csv'), 'w')
+    result.write('id,categories\n')
+
+    # initialize data
+    feats = sk_read_eval('origin_data/test.csv', normal=False)
+
+    # initialize model
+    model_list = []
+    for sub_model_path, sub_model_type in model_path_list:
+        if sub_model_type == 'nn':
+            model = CifarClassifer(num_classes=configs['num_classes'])
+        elif sub_model_type == 'cnn':
+            model = CNNCifarClassifer(num_classes=configs['num_classes'])
+
+        model.load_state_dict(torch.load(sub_model_path))
+        if configs['gpu']:
+            model = model.cuda()
+        model = model.eval()
+        model_list.append(model)
+
+        print('======= Loaded model from %s =======' % sub_model_path)
+
+    # start to inference
+    for batch_i, feat in enumerate(feats):
+        feat = torch.from_numpy(feat).unsqueeze(0)
+
+        if configs['gpu']:
+            feat = feat.cuda()
+
+        probs_list = []
+        pred_list = []
+
+        for model in model_list:
+            probs = model(feat)
+            prob = F.softmax(probs, dim=-1)
+            if configs['gpu']:
+                pred = prob.max(1, keepdim=True)[1].cpu().numpy()
+                probs_list.append(prob.max(1, keepdim=True)[0].cpu().detach().numpy()[0][0])
+            else:
+                pred = prob.max(1, keepdim=True)[1].numpy()
+                probs_list.append(prob.max(1, keepdim=True)[0].detach().numpy()[0][0])
+
+            pred_list.append(pred)
+
+        # choose the prediction with maximum confidence
+        probs_list = np.array(probs_list)
+        max_pred = pred_list[np.argmax(probs_list)][0][0]
+
+        result.write('%s,%s\n' % (str(batch_i), str(max_pred)))
+
+    result.close()
+
+
 def main(args, configs):
     if args.mode == 'train':
         train(args, configs)
     elif args.mode == 'test':
-        evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'final.pth'), configs=configs)
+        # evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'final.pth'), configs=configs)
+        bagging(args, model_path_list=[
+            (os.path.join(args.model_dir, args.method, 'best_0.9859.pth'), 'nn'),
+            (os.path.join(args.model_dir, args.method, 'best_0.9808.pth'), 'nn'),
+        ], configs=configs)
     else:
         raise NotImplemented

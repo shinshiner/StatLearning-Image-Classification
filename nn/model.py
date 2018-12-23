@@ -134,15 +134,15 @@ class PointNetfeat(nn.Module):
         super(PointNetfeat, self).__init__()
         self.num_feats = num_feats
 
-        self.conv1 = torch.nn.Conv1d(1, 64, 1)
-        self.conv2 = torch.nn.Conv1d(64, 128, 1)
-        self.conv3 = torch.nn.Conv1d(128, 1024, 1)
-        self.bn1 = nn.BatchNorm1d(64)
-        self.bn2 = nn.BatchNorm1d(128)
-        self.bn3 = nn.BatchNorm1d(1024)
-        self.mp1 = torch.nn.MaxPool1d(num_feats)
+        self.conv1 = torch.nn.Conv1d(1, 32, 1)
+        self.conv2 = torch.nn.Conv1d(32, 32, 1)
+        self.conv3 = torch.nn.Conv1d(32, 16, 1)
+        self.bn1 = nn.BatchNorm1d(32)
+        self.bn2 = nn.BatchNorm1d(32)
+        self.bn3 = nn.BatchNorm1d(16)
+        # self.mp1 = torch.nn.MaxPool1d(num_feats // 32)
 
-        self.fc1 = nn.Linear(1024, 256)
+        self.fc1 = nn.Linear(16 * 4096, 256)
         self.bn11 = nn.BatchNorm1d(256)
         self.fc2 = nn.Linear(256, 64)
         self.bn22 = nn.BatchNorm1d(64)
@@ -156,8 +156,10 @@ class PointNetfeat(nn.Module):
         x = F.relu(self.bn2(self.conv2(x)))
         x = self.bn3(self.conv3(x))
 
-        x = self.mp1(x)
-        x = x.view(-1, 1024)
+        # x = self.mp1(x)
+        # x = x.view(-1, 1024)
+
+        x = x.view(x.size()[0], -1)
 
         x = F.relu(self.bn11(self.fc1(x)))
         x = F.relu(self.bn22(self.fc2(x)))

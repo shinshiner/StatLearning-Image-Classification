@@ -8,7 +8,7 @@ The project of statistical learning (X033524).
 * pytorch
 * sklearn
 
-You can also check the detailed dependency in [requirement.txt](), and install them with [pip](https://pypi.org/project/pip/):
+You can also check the detailed dependency in [requirements.txt](https://github.com/shinshiner/StatLearning-Image-Classification/blob/master/requirements.txt), and install them with [pip](https://pypi.org/project/pip/):
 
 `
  pip3 install -r requirements.txt
@@ -20,4 +20,8 @@ You can also check the detailed dependency in [requirement.txt](), and install t
 
 * Run the command:
 
-`python3 main --method [your method] --mode [train or test]`
+`python3 main --method [nn, sknn, svm or knn] --mode [train or test]`
+
+## Tips
+
+* In the training process, besides the best model and final model, I also save the model after several epoch. When you are testing, you should specific the model you want to use if you use `nn` method (default model is the final one).
