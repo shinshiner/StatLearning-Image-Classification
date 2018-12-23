@@ -1,7 +1,7 @@
 import os
 import argparse
 
-from utils import config_parser
+from utils import config_parser, sk_read
 
 
 def init_parser():
@@ -37,14 +37,16 @@ if __name__ == '__main__':
         from nn.main import *
         main(args, configs)
     elif args.method == 'sknn':
-        from utils import sk_read
         feats, lbls = sk_read('origin_data/train.csv')
         from sknn.main import *
         main(args, feats, lbls, configs)
     elif args.method == 'svm':
-        from utils import sk_read
         feats, lbls = sk_read('origin_data/train.csv')
         from svm.main import *
+        main(args, feats, lbls, configs)
+    elif args.method == 'knn':
+        feats, lbls = sk_read('origin_data/train.csv')
+        from knn.main import *
         main(args, feats, lbls, configs)
     else:
         raise NotImplementedError('Method %s not implemented yet !' % args.method)

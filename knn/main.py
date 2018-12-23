@@ -1,14 +1,14 @@
 import os
 import numpy as np
 
-from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 
 
 def main(args, feats, lbls, configs):
     feats_tr, feat_t, lbls_tr, lbls_t = train_test_split(feats, lbls,
                             test_size=0.33, random_state=args.seed, shuffle=True)
-    model = SVC(C=configs['C'], kernel=configs['kernel'])
+    model = KNeighborsClassifier(n_neighbors=configs['n_neighbors'])
     model.fit(feats_tr, lbls_tr)
     print(model.score(feat_t, lbls_t))
 

@@ -35,7 +35,7 @@ def train(args, configs):
                             pin_memory=True, num_workers=configs['workers'], shuffle=True)
 
     # initialize model & optimizer & loss
-    model = CNNCifarClassifer(num_classes=configs['num_classes'])
+    model = PointNetfeat(num_classes=configs['num_classes'])
     optimizer = optim.Adam(model.parameters(), lr=configs['lr'], weight_decay=configs['weight_decay'])
     criterion = nn.CrossEntropyLoss()
     if configs['gpu']:
@@ -104,6 +104,7 @@ def train(args, configs):
             torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'best_%0.4f.pth' % accuracy))
             max_accuracy = accuracy
 
+    torch.save(model.state_dict(), os.path.join(args.model_dir, args.method, 'final.pth'))
     log_tr.close()
     log_t.close()
 
@@ -116,7 +117,7 @@ def evaluate(args, model_path, configs):
     feats = sk_read_eval('origin_data/test.csv', normal=False)
 
     # initialize model & optimizer & loss
-    model = CifarClassifer(num_classes=configs['num_classes'])
+    model = PointNetfeat(num_classes=configs['num_classes'])
     model.load_state_dict(torch.load(model_path))
     model = model.eval()
     if configs['gpu']:
@@ -151,7 +152,7 @@ def train_cv(args, configs):
     log_t = open(os.path.join(args.log_dir, args.method, 'test_log.txt'), 'w')
 
     # initialize model & optimizer & loss
-    model = CifarClassifer(num_classes=configs['num_classes'])
+    model = CNNCifarClassifer(num_classes=configs['num_classes'])
     optimizer = optim.Adam(model.parameters(), lr=configs['lr'], weight_decay=configs['weight_decay'])
     criterion = nn.CrossEntropyLoss()
     if configs['gpu']:
@@ -244,7 +245,7 @@ def train_cv(args, configs):
 
 def main(args, configs):
     if args.mode == 'train':
-        train_cv(args, configs)
+        train(args, configs)
     elif args.mode == 'test':
         evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'final.pth'), configs=configs)
     else:

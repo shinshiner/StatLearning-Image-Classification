@@ -7,7 +7,7 @@ import torch
 from sklearn.preprocessing import StandardScaler
 
 
-# split training and testing set, typically for pytorch
+# split training and testing set
 def split_train_test(source_file, target_dir, seed):
     print('======== spliting dataset =======')
     with open(source_file, 'r') as f:
