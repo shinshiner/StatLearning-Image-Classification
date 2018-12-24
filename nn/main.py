@@ -16,7 +16,6 @@ from nn.model import *
 from utils import sk_read, sk_read_eval
 
 
-
 def train(args, configs):
     torch.manual_seed(args.seed)
 
@@ -35,7 +34,7 @@ def train(args, configs):
                             pin_memory=True, num_workers=configs['workers'], shuffle=True)
 
     # initialize model & optimizer & loss
-    model = PointNetfeat(num_classes=configs['num_classes'])
+    model = CNNCifarClassifer(num_classes=configs['num_classes'])
     optimizer = optim.Adam(model.parameters(), lr=configs['lr'], weight_decay=configs['weight_decay'])
     criterion = nn.CrossEntropyLoss()
     if configs['gpu']:
@@ -117,7 +116,7 @@ def evaluate(args, model_path, configs):
     feats = sk_read_eval('origin_data/test.csv', normal=False)
 
     # initialize model
-    model = PointNetfeat(num_classes=configs['num_classes'])
+    model = CNNCifarClassifer(num_classes=configs['num_classes'])
     model.load_state_dict(torch.load(model_path))
     model = model.eval()
     if configs['gpu']:
@@ -257,6 +256,8 @@ def bagging(args, model_path_list, configs):
             model = CifarClassifer(num_classes=configs['num_classes'])
         elif sub_model_type == 'cnn':
             model = CNNCifarClassifer(num_classes=configs['num_classes'])
+        elif sub_model_type == 'pcd':
+            model = PointNetfeat(num_classes=configs['num_classes'])
 
         model.load_state_dict(torch.load(sub_model_path))
         if configs['gpu']:
@@ -273,24 +274,36 @@ def bagging(args, model_path_list, configs):
         if configs['gpu']:
             feat = feat.cuda()
 
-        probs_list = []
+        max_probs_list = []
+        prob_list = []
         pred_list = []
 
         for model in model_list:
             probs = model(feat)
             prob = F.softmax(probs, dim=-1)
+
             if configs['gpu']:
                 pred = prob.max(1, keepdim=True)[1].cpu().numpy()
-                probs_list.append(prob.max(1, keepdim=True)[0].cpu().detach().numpy()[0][0])
+
+                prob_list.append(prob.cpu().detach().numpy()[0])
+                max_probs_list.append(prob.max(1, keepdim=True)[0].cpu().detach().numpy()[0][0])
             else:
                 pred = prob.max(1, keepdim=True)[1].numpy()
-                probs_list.append(prob.max(1, keepdim=True)[0].detach().numpy()[0][0])
+
+                prob_list.append(prob.detach().numpy()[0])
+                max_probs_list.append(prob.max(1, keepdim=True)[0].detach().numpy()[0][0])
 
             pred_list.append(pred)
 
-        # choose the prediction with maximum confidence
-        probs_list = np.array(probs_list)
-        max_pred = pred_list[np.argmax(probs_list)][0][0]
+        # choose the prediction
+        max_probs_list = np.array(max_probs_list)
+        if configs['bagging_mode'] == 'hard':
+            max_pred = pred_list[np.argmax(max_probs_list)][0][0]
+        elif configs['bagging_mode'] == 'soft':
+            prob_sum = np.zeros((configs['num_classes']))
+            for sub_prob in prob_list:
+                prob_sum += sub_prob
+            max_pred = np.argmax(prob_sum)
 
         result.write('%s,%s\n' % (str(batch_i), str(max_pred)))
 
@@ -303,8 +316,8 @@ def main(args, configs):
     elif args.mode == 'test':
         # evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'final.pth'), configs=configs)
         bagging(args, model_path_list=[
-            (os.path.join(args.model_dir, args.method, 'best_0.9859.pth'), 'nn'),
-            (os.path.join(args.model_dir, args.method, 'best_0.9808.pth'), 'nn'),
+            (os.path.join(args.model_dir, args.method, 'cnn_???.pth'), 'cnn'),
+            (os.path.join(args.model_dir, args.method, 'pcd_91623.pth'), 'pcd'),
         ], configs=configs)
     else:
         raise NotImplemented

@@ -91,32 +91,36 @@ class CifarClassifer(nn.Module):
 class CNNCifarClassifer(nn.Module):
     def __init__(self, num_classes):
         super(CNNCifarClassifer, self).__init__()
+        activate_func = nn.SELU()
 
         self.cnn_block = nn.Sequential(OrderedDict([
             ('cnn1', nn.Conv2d(1, 32, kernel_size=5, stride=3)),
             ('bn1', nn.BatchNorm2d(32)),
-            ('relu1', nn.ReLU()),
+            ('relu1', activate_func),
             ('cnn2', nn.Conv2d(32, 64, kernel_size=3, stride=1)),
             ('bn2', nn.BatchNorm2d(64)),
-            ('relu2', nn.ReLU()),
+            ('relu2', activate_func),
             ('cnn3', nn.Conv2d(64, 64, kernel_size=3, stride=1)),
             ('bn3', nn.BatchNorm2d(64)),
-            ('relu3', nn.ReLU()),
+            ('relu3', activate_func),
             ('cnn4', nn.Conv2d(64, 32, kernel_size=3, stride=1)),
             ('bn4', nn.BatchNorm2d(32)),
-            ('relu4', nn.ReLU()),
+            ('relu4', activate_func),
         ]))
 
         self.fc_block = nn.Sequential(OrderedDict([
             ('fc1', nn.Linear(32 * 14 * 14, 2048)),
+            ('bn11', nn.BatchNorm1d(2048)),
             ('d1', nn.Dropout(0.5)),
-            ('relu4', nn.ReLU()),
+            ('relu4', activate_func),
             ('fc2', nn.Linear(2048, 512)),
+            ('bn22', nn.BatchNorm1d(512)),
             ('d2', nn.Dropout(0.5)),
-            ('relu5', nn.ReLU()),
+            ('relu5', activate_func),
             ('fc3', nn.Linear(512, 64)),
+            ('bn33', nn.BatchNorm1d(64)),
             ('d3', nn.Dropout(0.5)),
-            ('relu6', nn.ReLU()),
+            ('relu6', activate_func),
             ('fc5', nn.Linear(64, num_classes))
         ]))
 

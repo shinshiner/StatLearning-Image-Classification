@@ -117,7 +117,10 @@ def config_parser(config_path):
 
     if configs.get('gpu'):
         configs['gpu'] = configs['gpu'] and torch.cuda.is_available()
-    print(configs)
+
+    print('======= Training with the following configurations =======')
+    for k, v in configs.items():
+        print('  ', k, ': ' v)
 
     return configs
 
