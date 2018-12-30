@@ -13,11 +13,13 @@ from sklearn.utils import shuffle
 
 from nn.cifar10_loader import Cifar10
 from nn.model import *
-from utils import sk_read, sk_read_eval
+from utils import sk_read, sk_read_eval, split_train_test
 
 
 def train(args, configs):
     torch.manual_seed(args.seed)
+    if configs['separate']:
+        split_train_test('origin_data/train.csv', 'splited_data', args.seed)
 
     # initialize logger
     if not os.path.isdir(os.path.join(args.log_dir, args.method)):
@@ -34,7 +36,7 @@ def train(args, configs):
                             pin_memory=True, num_workers=configs['workers'], shuffle=True)
 
     # initialize model & optimizer & loss
-    model = CNNCifarClassifer(num_classes=configs['num_classes'])
+    model = CifarClassifer2(num_classes=configs['num_classes'])
     optimizer = optim.Adam(model.parameters(), lr=configs['lr'], weight_decay=configs['weight_decay'])
     criterion = nn.CrossEntropyLoss()
     if configs['gpu']:
@@ -42,6 +44,7 @@ def train(args, configs):
         criterion = criterion.cuda()
 
     max_accuracy = 0
+    loss_sum = 0
 
     for i in range(configs['epoch']):
         # training phase
@@ -59,15 +62,19 @@ def train(args, configs):
             loss.backward()
             optimizer.step()
 
+            if configs['gpu']:
+                loss = loss.detach().cpu().numpy()
+            else:
+                loss = loss.detach().numpy()
+            loss_sum += loss
+
             if batch_i % configs['loss_interval'] == 0:
-                if configs['gpu']:
-                    loss = loss.detach().cpu().numpy()
-                else:
-                    loss = loss.detach().numpy()
-                log_info = '[Epoch: %d], [training loss: %0.8f]' % (i, loss)
+                log_info = '[Epoch: %d], [training loss: %0.8f]' % (i, loss_sum)
                 print(log_info)
                 log_tr.write(log_info + '\n')
                 log_tr.flush()
+
+                loss_sum = 0
 
         # testing phase
         print('======= Testing =======')
@@ -116,7 +123,7 @@ def evaluate(args, model_path, configs):
     feats = sk_read_eval('origin_data/test.csv', normal=False)
 
     # initialize model
-    model = CNNCifarClassifer(num_classes=configs['num_classes'])
+    model = CifarClassifer2(num_classes=configs['num_classes'])
     model.load_state_dict(torch.load(model_path))
     model = model.eval()
     if configs['gpu']:
@@ -258,6 +265,8 @@ def bagging(args, model_path_list, configs):
             model = CNNCifarClassifer(num_classes=configs['num_classes'])
         elif sub_model_type == 'pcd':
             model = PointNetfeat(num_classes=configs['num_classes'])
+        elif sub_model_type == 'simplenn':
+            model = CifarClassifer2(num_classes=configs['num_classes'])
 
         model.load_state_dict(torch.load(sub_model_path))
         if configs['gpu']:
@@ -314,10 +323,12 @@ def main(args, configs):
     if args.mode == 'train':
         train(args, configs)
     elif args.mode == 'test':
-        # evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'final.pth'), configs=configs)
+        # evaluate(args, model_path=os.path.join(args.model_dir, args.method, 'epoch_2650.pth'), configs=configs)
         bagging(args, model_path_list=[
-            (os.path.join(args.model_dir, args.method, 'cnn_???.pth'), 'cnn'),
-            (os.path.join(args.model_dir, args.method, 'pcd_91623.pth'), 'pcd'),
+            (os.path.join(args.model_dir, args.method, 'nn_92692.pth'), 'nn'),
+            (os.path.join(args.model_dir, args.method, 'cnn_92329.pth'), 'cnn'),
+            # (os.path.join(args.model_dir, args.method, 'pcd_91623.pth'), 'pcd'),
+            (os.path.join(args.model_dir, args.method, 'simplenn_92948.pth'), 'simplenn'),
         ], configs=configs)
     else:
         raise NotImplemented

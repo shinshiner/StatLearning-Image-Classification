@@ -75,7 +75,7 @@ def sk_read(data_path, normal=True):
 
 
 # read data for sklearn format (numpy-array)
-def sk_read_eval(data_path, normal=True):
+def sk_read_eval(data_path, normal=False):
     if os.path.exists('origin_data/feats_eval_%d.npy' % normal):
         feats = np.load('origin_data/feats_eval_%d.npy' % normal).astype(np.float32)
         print('======= numpy-array format data ready ! =======')
@@ -96,9 +96,10 @@ def sk_read_eval(data_path, normal=True):
     feats = np.array(feats).astype(np.float32)
 
     if normal:
-        scaler = StandardScaler()
-        scaler.fit(feats)
-        scaler.transform(feats)
+        # scaler = StandardScaler()
+        # scaler.fit(feats)
+        # scaler.transform(feats)
+        feats = (feats - feats.mean()) / feats.std()
 
     np.save('origin_data/feats_eval_%d.npy' % normal, feats)
 
@@ -120,7 +121,7 @@ def config_parser(config_path):
 
     print('======= Training with the following configurations =======')
     for k, v in configs.items():
-        print('  ', k, ': ' v)
+        print('  ', k, ': ', v)
 
     return configs
 
@@ -141,4 +142,4 @@ def compare(f1, f2):
 
 
 if __name__ == '__main__':
-    compare('nn/results.csv', 'results_92222.csv')
+    compare('nn/results.csv', 'results_93119.csv')

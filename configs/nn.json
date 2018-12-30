@@ -1,15 +1,16 @@
 {
-  "epoch": "500",
+  "epoch": "9999",
   "gpu": "True",
   "workers": "8",
-  "loss_interval": "20",
-  "save_interval": "10",
+  "loss_interval": "50",
+  "save_interval": "50",
   "n_folds": "5",
 
-  "lr": "0.00001",
+  "lr": "0.000001",
   "batch_size": "32",
-  "weight_decay": "0.01",
+  "weight_decay": "0.001",
 
   "num_classes": "12",
-  "bagging_mode": "soft"
+  "bagging_mode": "soft",
+  "separate": "1"
 }

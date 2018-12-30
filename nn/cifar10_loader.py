@@ -1,12 +1,13 @@
-import numpy as np
 import os
+import numpy as np
+from sklearn.decomposition import PCA
 
 import torch
 from torch.utils.data.dataset import Dataset
 
 
 class Cifar10(Dataset):
-    def __init__(self, data_dir, mode, evaluate=False):
+    def __init__(self, data_dir, mode, evaluate=False, normal=False, pca=False):
         self.feat = []
         self.lbl = []
         self.data_dir = data_dir
@@ -18,6 +19,14 @@ class Cifar10(Dataset):
         # transfer format
         self.feat = np.array(self.feat).astype(np.float32)
         self.lbl = np.array(self.lbl).astype(np.uint8)
+
+        if normal:
+            self.feat = (self.feat - self.feat.mean()) / self.feat.std()
+
+        if pca:
+            pca_estimator = PCA(n_components=512)
+            self.feat = pca_estimator.fit_transform(self.feat)
+            print(pca_estimator.explained_variance_ratio_)
 
         print('Loaded dataset from %s with size %d' % (self.data_file, self.feat.shape[0]))
 
