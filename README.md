@@ -1,21 +1,24 @@
-# StatLearning-Image-Classification'
+# StatLearning-Image-Classification
 
-The project of statistical learning (X033524).
+The code for the project of statistical learning (X033524).
 
 ## Requirements
 
-* Python3.x
-* pytorch 1.0.0
-* sklearn 0.19.2
-* torchvision 0.2.1 (if you want to use some DCNN architectures)
+* Python 3.x
+* [numpy>=1.15.4](http://www.numpy.org/)
+* [pytorch>=1.0.0](http://pytorch.org/)
+* [sklearn>=0.19.2](http://scikit-learn.org/stable/index.html)
+* [torchvision>=0.2.1](http://pytorch.org/) (if you want to use some DCNN architectures)
 
 ## Usage
 
 * Change your current dictionary into the root dictionary of this project.
 
+* Put the training data into `./origin_data/`
+
 * Run the command:
 
-`python3 main --method [knn, svm, mlp, cnn and etc] --mode [train or test]`
+`python3 main.py --method [knn, svm, mlp, cnn and etc] --mode [train or test]`
 
 ## Results
 
@@ -47,8 +50,16 @@ The test curves of the above NN models:
     <img src="./figures/cnn_accuracy.png" width="70%">
 </figure>
 
+## Visualization of the input
+
+I reshape 4096-dim vectors to 2d feature maps.
+
+<figure class="half">
+    <img src="./figures/demo.png" width="70%">
+</figure>
+
 ## Tips
 
 * In the training process, besides the best model and final model, I also save the model after several epoch. When you are testing, you should specific the model you want to use if you use `mlp` or `cnn` method (default model is the final one).
 
-* The default CNN architecture is a naive CNN, you may change the architecture in `nn/main.py` if you like.
+* The default CNN architecture is a naive CNN, you may change the architecture in `nn/main.py` and `nn/model.py` if you like.
