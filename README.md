@@ -14,7 +14,7 @@ The code for the project of statistical learning (X033524).
 
 * Change your current dictionary into the root dictionary of this project.
 
-* Put the training data into `./origin_data/`
+* Create `origin_data` directory and put the training data into it.
 
 * Run the command:
 
@@ -41,7 +41,7 @@ The code for the project of statistical learning (X033524).
 | SVM (sigmoid) | 91.15 | Plain MLP | 98.33 |
 | MLP + BN | **98.84** | MLP + Dropout (0.5) | 98.33 |
 | MLP + BN + Dropout (0.5) | 98.72 | Naive CNN | 98.71 |
-| DenseNet121 | - | PointNet | 98.74 |
+| DenseNet121 | 96.92 | PointNet | 98.74 |
 
 The test curves of the above NN models:
 
