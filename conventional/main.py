@@ -1,13 +1,26 @@
 import os
 import numpy as np
 
-from sklearn.svm import SVC, LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_validate
 
 
 def main(args, feats, lbls, configs):
-    model = SVC(C=configs['C'], kernel=configs['kernel'])
-    # model = LinearSVC(C==configs['C'])
+    if args.method == 'knn':
+        model = KNeighborsClassifier(n_neighbors=3)
+    elif args.method == 'lr':
+        from sklearn.linear_model import LogisticRegression
+        model = LogisticRegression()
+    elif args.method == 'dt':
+        from sklearn.tree import DecisionTreeClassifier
+        model = DecisionTreeClassifier(criterion='gini')
+    elif args.method == 'nb':
+        from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
+        model = GaussianNB()
+    elif args.method == 'lda':
+        from sklearn.lda import LDA
+        model = LDA()
+
     cv_results = cross_validate(model, feats, lbls, cv=5, return_train_score=False)
     print(cv_results['test_score'])
     print(cv_results['test_score'].mean())

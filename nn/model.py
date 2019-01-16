@@ -45,89 +45,6 @@ def weights_init_dl(m):
         m.bias.data.fill_(0.0)
 
 
-class CifarClassifer(nn.Module):
-    def __init__(self, num_classes):
-        super(CifarClassifer, self).__init__()
-        activate_func = nn.ELU()
-
-        # self.fc_block = nn.Sequential(OrderedDict([
-        #     ('fc1', nn.Linear(4096, 1024)),
-        #     ('relu1', activate_func),
-        #     ('fc2', nn.Linear(1024, 512)),
-        #     ('relu2', activate_func),
-        #     ('fc3', nn.Linear(512, 256)),
-        #     ('relu3', activate_func),
-        #     ('fc4', nn.Linear(256, 64)),
-        #     ('relu4', activate_func),
-        #     ('fc5', nn.Linear(64, num_classes))
-        # ]))
-
-        # self.fc_bn_block = nn.Sequential(OrderedDict([
-        #     ('fc1', nn.Linear(4096, 1024)),
-        #     ('bn1', nn.BatchNorm1d(1024)),
-        #     ('relu1', activate_func),
-        #     ('fc2', nn.Linear(1024, 512)),
-        #     ('bn2', nn.BatchNorm1d(512)),
-        #     ('relu2', activate_func),
-        #     ('fc3', nn.Linear(512, 256)),
-        #     ('bn3', nn.BatchNorm1d(256)),
-        #     ('relu3', activate_func),
-        #     ('fc4', nn.Linear(256, 64)),
-        #     ('bn4', nn.BatchNorm1d(64)),
-        #     ('relu4', activate_func),
-        #     ('fc5', nn.Linear(64, num_classes))
-        # ]))
-
-        # self.fc_bn_drop_block = nn.Sequential(OrderedDict([
-        #     ('fc1', nn.Linear(4096, 1024)),
-        #     ('bn1', nn.BatchNorm1d(1024)),
-        #     ('d1', nn.Dropout(0.5)),
-        #     ('relu1', activate_func),
-        #     ('fc2', nn.Linear(1024, 512)),
-        #     ('bn2', nn.BatchNorm1d(512)),
-        #     ('d2', nn.Dropout(0.5)),
-        #     ('relu2', activate_func),
-        #     ('fc3', nn.Linear(512, 256)),
-        #     ('bn3', nn.BatchNorm1d(256)),
-        #     ('d3', nn.Dropout(0.5)),
-        #     ('relu3', activate_func),
-        #     ('fc4', nn.Linear(256, 64)),
-        #     ('bn4', nn.BatchNorm1d(64)),
-        #     ('d4', nn.Dropout(0.5)),
-        #     ('relu4', activate_func),
-        #     ('fc5', nn.Linear(64, num_classes))
-        # ]))
-
-        self.fc_bn_drop_block = nn.Sequential(OrderedDict([
-            ('fc1', nn.Linear(4096, 512)),
-            ('bn1', nn.BatchNorm1d(512)),
-            ('d1', nn.Dropout(0.5)),
-            ('relu1', activate_func),
-            ('fc2', nn.Linear(512, 128)),
-            ('bn2', nn.BatchNorm1d(128)),
-            ('d2', nn.Dropout(0.5)),
-            ('relu2', activate_func),
-            ('fc3', nn.Linear(128, num_classes))
-        ]))
-
-        
-
-        # self.fc_bn_drop_block = nn.Sequential(OrderedDict([
-        #     ('fc1', nn.Linear(512, 256)),
-        #     ('bn1', nn.BatchNorm1d(256)),
-        #     ('d1', nn.Dropout(0.5)),
-        #     ('fc2', nn.Linear(256, 256)),
-        #     ('bn2', nn.BatchNorm1d(256)),
-        #     ('d2', nn.Dropout(0.5)),
-        #     ('fc3', nn.Linear(256, num_classes))
-        # ]))
-
-        self.apply(weights_init)
-
-    def forward(self, x):
-        return self.fc_bn_drop_block(x)
-
-
 class CNNCifarClassifer(nn.Module):
     def __init__(self, num_classes):
         super(CNNCifarClassifer, self).__init__()
@@ -186,7 +103,6 @@ class PointNetfeat(nn.Module):
         self.bn1 = nn.BatchNorm1d(32)
         self.bn2 = nn.BatchNorm1d(32)
         self.bn3 = nn.BatchNorm1d(16)
-        # self.mp1 = torch.nn.MaxPool1d(num_feats // 32)
 
         self.fc1 = nn.Linear(16 * 4096, 256)
         self.bn11 = nn.BatchNorm1d(256)
@@ -201,9 +117,6 @@ class PointNetfeat(nn.Module):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = self.bn3(self.conv3(x))
-
-        # x = self.mp1(x)
-        # x = x.view(-1, 1024)
 
         x = x.view(x.size()[0], -1)
 
@@ -240,10 +153,10 @@ class DLCifarClassifer(nn.Module):
         return self.fc_block(x)
 
 
-class CifarClassifer2(nn.Module):
+class CifarClassifer(nn.Module):
     def __init__(self, num_classes):
-        super(CifarClassifer2, self).__init__()
-        activate_func = nn.Sigmoid()        
+        super(CifarClassifer, self).__init__()
+        activate_func = nn.ReLU()
 
         self.fc_bn_drop_block = nn.Sequential(OrderedDict([
             ('fc1', nn.Linear(4096, 256)),

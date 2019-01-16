@@ -28,25 +28,21 @@ def init_parser():
 
 if __name__ == '__main__':
     args = init_parser()
-    if not os.path.exists('splited_data/train.csv'):
-        from utils import split_train_test
-        split_train_test('origin_data/train.csv', 'splited_data', args.seed)
 
+    conventional = ['knn', 'nb', 'lr', 'dt', 'lda']
+    nn = ['mlp', 'cnn']
     configs = config_parser(os.path.join(args.config_dir, '%s.json' % args.method))
-    if args.method == 'nn':
+
+    if args.method in nn:
         from nn.main import *
         main(args, configs)
-    elif args.method == 'sknn':
-        feats, lbls = sk_read('origin_data/train.csv')
-        from sknn.main import *
-        main(args, feats, lbls, configs)
     elif args.method == 'svm':
         feats, lbls = sk_read('origin_data/train.csv')
         from svm.main import *
         main(args, feats, lbls, configs)
-    elif args.method == 'knn':
+    elif args.method in conventional:
         feats, lbls = sk_read('origin_data/train.csv')
-        from knn.main import *
+        from conventional.main import *
         main(args, feats, lbls, configs)
     else:
         raise NotImplementedError('Method %s not implemented yet !' % args.method)

@@ -2,6 +2,7 @@ import os
 import random
 import numpy as np
 import json
+import pickle
 
 import torch
 from sklearn.preprocessing import StandardScaler
@@ -110,6 +111,9 @@ def sk_read_eval(data_path, normal=False):
 
 # read configurations from .json files
 def config_parser(config_path):
+    if not os.path.exists(config_path): # for NULL configs
+        return {}
+
     with open(config_path, 'r') as f:
         configs = json.load(f)
         for k, v in configs.items():
@@ -126,20 +130,24 @@ def config_parser(config_path):
     return configs
 
 
-# trick
-def compare(f1, f2):
-    with open(f1, 'r') as f1:
-        with open(f2, 'r') as f2:
-            lines1 = f1.readlines()
-            lines2 = f2.readlines()
+def null_model():
+    if not os.path.exists('demo.pkl'):
+        with open('origin_data/train.csv', 'r') as f:
+            lines = f.readlines()[1:]
+            with open('demo.pkl', 'wb') as ff:
+                pickle.dump(lines, ff)
+    else:
+        with open('demo.pkl', 'rb') as ff:
+            lines = pickle.load(ff)
 
     cnt = 0
-    for l1, l2 in zip(lines1, lines2):
-        if l1 != l2:
+    for l in lines:
+        pred = random.randint(0, 11)
+        if pred == int(l.rstrip().split(',')[-1]):
             cnt += 1
-            print(l1[:-1], '  ', l2[:-1])
-    print('Different result number: %d' % cnt)
+
+    print(cnt / len(lines))
 
 
 if __name__ == '__main__':
-    compare('nn/results.csv', 'results_93119.csv')
+    null_model()

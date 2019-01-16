@@ -24,7 +24,7 @@ class Cifar10(Dataset):
             self.feat = (self.feat - self.feat.mean()) / self.feat.std()
 
         if pca:
-            pca_estimator = PCA(n_components=512)
+            pca_estimator = PCA(n_components=10)
             self.feat = pca_estimator.fit_transform(self.feat)
             print(pca_estimator.explained_variance_ratio_)
 

@@ -6,6 +6,9 @@ __pycache__/
 .idea/
 *data/
 result*
+logs/
+
+plot.py
 
 # C extensions
 *.so
@@ -58,6 +61,7 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
+trick.py
 db.sqlite3
 
 # Flask stuff:
