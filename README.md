@@ -1,6 +1,6 @@
 # StatLearning-Image-Classification
 
-The code for the project of statistical learning (X033524).
+The code for the project of Statistical Learning (X033524).
 
 ## Requirements
 
@@ -14,7 +14,7 @@ The code for the project of statistical learning (X033524).
 
 * Change your current dictionary into the root dictionary of this project.
 
-* Create `origin_data` directory and put the training data into it.
+* Create `origin_data` and `spilited_data` directory and put the training data into it.
 
 * Run the command:
 
